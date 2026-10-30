@@ -1,3 +1,5 @@
+![Banner](banner.png)
+
 # file-magic-identifier
 Identifies file type based on magic numbers, providing a more robust check than file extensions alone. Uses the `python-magic` library. - Focused on File operations and analysis
 
