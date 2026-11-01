@@ -7,6 +7,9 @@ import sys
 
 
 # Set up logging
+# magic is imported unguarded at the top of this file. Without
+# python-magic this tool does not start at all, not even to print help,
+# because there is no fallback identifier behind it.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def setup_argparse():
@@ -36,6 +39,10 @@ def identify_file_type(file_path):
 
         # Use python-magic to identify the file type
         mime = magic.Magic(mime=True)
+        # The file is identified twice, once through a Magic instance for the
+        # MIME type and once through the module function for the long
+        # description. libmagic reads the file both times; the two answers come
+        # from the same database, so they cannot disagree in kind.
         mime_type = mime.from_file(file_path)
 
         file_info = magic.from_file(file_path)
@@ -64,6 +71,10 @@ def main():
     file_path = args.file_path
 
     # Input Validation: Check if file_path is a valid path
+    # Constructing a Path cannot fail for an odd string, so this try block
+    # validates nothing in practice. The real existence check lives inside
+    # identify_file_type, and the empty string check below is the only part
+    # of this validation that can actually fire.
     try:
         pathlib.Path(file_path)
     except OSError:
@@ -78,6 +89,8 @@ def main():
     # Call the function to identify the file type
     file_type = identify_file_type(file_path)
 
+    # None is the only failure signal, and it merges file not found with
+    # libmagic failing. Both exit 1 with the reason in the log.
     if file_type:
         print(f"File type: {file_type}")
     else:
